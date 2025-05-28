@@ -1,7 +1,7 @@
 from warnings import warn
 from os.path import join
 from utils.githubDownloader import Downloader
-from utils.getDirecroty import get_project_root
+from utils.file_handler import get_project_root
 
 url = "https://github.com/dbachko/bhagavad-gita-as-it-is"
 def main():

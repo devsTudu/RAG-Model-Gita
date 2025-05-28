@@ -33,8 +33,9 @@ def list_of_files(path: str, extension: str) -> [str]:
     """
 
     files = []
-    for root, dirs, files in os.walk(path):
-        for file in files:
+    for root, dirs, files_in_dir in os.walk(path):
+        for file in files_in_dir:
             if file.endswith(extension):
                 files.append(os.path.join(root, file))
     return files
+                
