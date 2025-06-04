@@ -1,9 +1,37 @@
-requests~=2.32.3
-langchain==0.3.25
-langchain-community==0.3.24
-langchain-core==0.3.62
-langchain-google-genai==2.1.5
-langchain-text-splitters==0.3.8
-faiss-cpu==1.11.0
-duckduckgo-search==0.6.0
+requests
+langchain
+langchain-community
+langchain-core
+langchain-google-genai
+langchain-text-splitters
+faiss-cpu
+duckduckgo-search
 google-generativeai
+fastapi[standard]
+sqlalchemy
+google-genai
+
+
+unstructured
+markdown
+
+## Search Modules
+googlesearch-python
+pycountry
+wikipedia
+
+## Vector DBs
+# chromadb 
+# lancedb some problem in my pc
+aiofiles
+langchain_postgres
+pgvector
+psycopg2
+langchain-astradb
+
+## App
+python-jose[cryptography]
+
+## Streamlit
+streamlit>=1.42.0
+Authlib>=1.3.2

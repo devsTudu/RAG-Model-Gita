@@ -1,3 +1,5 @@
-from phi.agent import AgentKnowledge
-from phi.vectordb.pgvector import PgVector
-from phi.embedder.google import GeminiEmbedder
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+myEmbedder = GoogleGenerativeAIEmbeddings(
+    model='models/embedding-001'
+)

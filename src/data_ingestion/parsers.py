@@ -5,20 +5,20 @@ import re
 logger = get_logger(__name__)
 
 
-def process_md(path) -> (str, str):
+def process_md(path: str) -> tuple[str, str] | None:
     """
     Reads a Markdown (.md) file and returns the translation and purport.
     :param path: path to the Markdown file
     :return: a tuple of the translation and purport
     """
     if not path.endswith('.md'):
-        logger.warning('File extension must be .md', path)
+        logger.warning(' File extension must be .md %s ',path)
     else:
         content = read_file(path)
 
         try:
             if  "Translation" not in content:
-                logger.warning(f"Translation section not found in {path}")
+                logger.warning("Translation section not found : %s ",path)
                 return "", content
             elif "Purport" in content:
                 translation = re.findall("### Translation:(.*?)### Purport:", content, re.DOTALL)[0].strip()
@@ -27,8 +27,9 @@ def process_md(path) -> (str, str):
                 translation = re.findall("### Translation:", content, re.DOTALL)[0].strip()
                 purport = ""
             return translation, purport
-        except IndexError as i:
-            logger.error(f"Error parsing file: {path}")
+        except IndexError:
+            logger.error("Error parsing file: %s ",path)
+
 def process_md_adv(path,headings:list[str])->dict:
     """
     Reads a Markdown (.md) file and returns the required headers
@@ -39,21 +40,23 @@ def process_md_adv(path,headings:list[str])->dict:
     content = read_file(path)
 
     resp = dict((zip(headings, [""] * len(headings))))
-    resp['Reference'] = ":".join(path.split('/')[-2:]).replace('.md', '')
-    if not path.endswith('.md'):
-        logger.warning('File extension must be .md', path)
-        return resp
-    for i in range(len(headings)):
-        try:
-            key = headings[i]
-            pattern = rf"# {key}(.*?)(?=#|$)"
-            match = re.search(pattern, content, re.DOTALL)
-            match_text = match.group(1) if match else ""
-            resp[key] = match_text.replace(':\n\n', ' ').strip()
-        except Exception as e:
-            logger.error(f"Error parsing file: {path}")
-    if not any(resp.values()):
-        logger.warning(f"No valid headings found in {path}")
+    if path.endswith('.md'):
+        for key in headings:
+            try:
+                pattern = rf"# {key}(.*?)(?=#|$)"
+                match = re.search(pattern, content, re.DOTALL)
+                match_text = match.group(1) if match else ""
+                resp[key] = match_text.replace(':\n\n', ' ').strip()
+            except AttributeError:
+                logger.error("Error parsing file: %s", path)
+        if not any(resp.values()):
+            logger.warning("No valid headings found in %s loading them as content",path)
+            resp['content'] = content
+        else:
+            logger.log(0,"Successfully parsed headings from %s",path)
+            
     else:
-        logger.info(f"Successfully parsed headings from {path}")
+        logger.warning('File extension must be .md %s ', path)
+        
+    resp['Reference'] = ":".join(path.split('\\')[-2:]).replace('.md', '')
     return resp

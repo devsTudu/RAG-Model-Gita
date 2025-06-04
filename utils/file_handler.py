@@ -23,7 +23,7 @@ def read_file(file_path):
         return f"Error reading file: {e}"
 
 
-def list_of_files(path: str, extension: str) -> [str]:
+def list_of_files(path: str | Path, extension: str, exclude:list[str]) -> list[str]:
     """
     Search for all files in path and return a list of all files in path with the extension appended.
 
@@ -33,9 +33,13 @@ def list_of_files(path: str, extension: str) -> [str]:
     """
 
     files = []
-    for root, dirs, files_in_dir in os.walk(path):
+    for root,_ , files_in_dir in os.walk(path):
         for file in files_in_dir:
             if file.endswith(extension):
-                files.append(os.path.join(root, file))
+                for ex in exclude:
+                    if ex in file:
+                        break
+                else:
+                    files.append(os.path.join(root, file))
     return files
                 
