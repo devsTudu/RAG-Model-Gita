@@ -146,3 +146,15 @@ async def get_response(query:model_query):
     model = MODEL_REGISTRY.get(query.model,naive)
     response = model(query).cleaned()
     return response
+
+def get_quick(query:str):
+    """Get the quick model for the query
+
+    Args:
+        query (str): The query to be processed
+
+    Returns:
+        str: The response from the quick model
+    """
+    return naive(model_query(model='quick_1',question=query)).cleaned()
+

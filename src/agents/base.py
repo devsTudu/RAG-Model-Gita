@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from app.webapp.dataclass import model_query
 
 from src.vector_store.load_db import Neon_DB,Supabase_DB
-from src.agents.chat_models import gemini,gemini_strict
+from src.agents.chat_models import gemini,gemini_strict, custom_model
 
 
 LLM = gemini

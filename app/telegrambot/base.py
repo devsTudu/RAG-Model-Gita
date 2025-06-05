@@ -23,7 +23,7 @@ class TelegramBot:
             return "Failed Request to TG API"
 
     def send_message(self, chat_id, text):
-        data = {'chat_id': chat_id, 'text': text}
+        data = {'chat_id': chat_id, 'text': text, "parse_mode": "Markdown"}
         return self.send_request('sendMessage', data)
 
     def reply_message(self, chat_id, msg_id, text):
