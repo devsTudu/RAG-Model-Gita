@@ -1,35 +1,13 @@
-from abc import ABC, abstractmethod
-from app.dataclass import model_query
-from src.vector_store.load_db import Neon_DB,Supabase_DB
-from src.agents.chat_models import gemini,gemini_strict
-
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from langchain_core.runnables import RunnablePassthrough
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain.load import dumps, loads
 
+from operator import itemgetter
 
+from app.webapp.dataclass import model_query
+from src.agents.base import RAG_Model, TEMPLATES, RETRIEVER, LLM, LLM_S
 
-LLM = gemini
-LLM_S = gemini_strict
-
-
-class RAG_Model(ABC):
-    """The Abstract class for building RAGs
-
-    Args:
-        ABC (_type_): Abstract Base Class
-    """
-    def __init__(self,query:model_query) -> None:
-        self.query = query
-        
-    
-    
-    @abstractmethod
-    def process(self)-> str:
-        """"""
-        pass
-    
-    
 MODEL_REGISTRY: dict[str, type[RAG_Model]] = {}
 
 def register_model(name: str):
@@ -38,43 +16,33 @@ def register_model(name: str):
         return cls
     return wrapper
 
-@register_model('naive')
+
+@register_model(name='quick_1')
 class naive(RAG_Model):
-    def __init__(self, query: model_query) -> None:
-        super().__init__(query)
-    
+    """The most general and simple RAG Model
+
+    Args:
+        RAG_Model (_type_): _description_
+    """
     def process(self) -> str:
-        template = """You are a wise and empathetic guide helping a user understand the teachings of the Bhagavad Gita.
-                    Use the retrieved context, which are from 'the Bhagavad Gita - As it is' Book, below to answer the user's question. If the context provides sufficient information, respond with clarity and depth. Use analogies or real-life examples to make difficult concepts more relatable.
-
-                    If the context seems insufficient to fully answer the user's question, acknowledge it respectfully, and suggest how the user might explore it further or request clarification.
-
-                    Always maintain a tone that is humble, respectful, and spiritually aware.
-
-                    Context:
-                    {context}
-
-                    User’s Question:
-                    {query}
-
-                    Your Answer:
-        """.strip()
+        template = TEMPLATES['BASIC']
         prompt = ChatPromptTemplate.from_template(template)
-        retriever = Neon_DB.get_retriever()
         rag_chain = (
-            {"context": retriever, "query": RunnablePassthrough()}
+            {"context": RETRIEVER, "question": RunnablePassthrough()}
             | prompt
             | LLM
             | StrOutputParser()
         )
 
-        return rag_chain.invoke(self.query.query).replace("provided text","Bhagavad Gita")
+        return rag_chain.invoke(self.query.question)
 
-@register_model('HyDe')
+@register_model('quick_2')
 class hyde(RAG_Model):
-    def __init__(self, query: model_query) -> None:
-        super().__init__(query)
-    
+    """Model with Hypothetical Document Embedding techniques
+
+    Args:
+        RAG_Model (_type_): _description_
+    """
     def process(self) -> str:
         template = """Please write a scientific logical explanation paper passage to answer the question,
         focus more on the understanding and influence of the answer to the audience than the fact,
@@ -89,16 +57,10 @@ class hyde(RAG_Model):
         def Hyde_response(question):
             # question = "What is task decomposition for LLM agents?"
             generate_docs_for_retrieval.invoke({"question":question})
-            retriever = Supabase_DB.get_retriever()
-            retrieval_chain = generate_docs_for_retrieval | retriever
+            retrieval_chain = generate_docs_for_retrieval | RETRIEVER
             retrieved_docs = retrieval_chain.invoke({"question":question})
             # RAG
-            template = """Answer the following question based on this context:
-
-            {context}
-
-            Question: {question}
-            """
+            template = TEMPLATES["BASIC"]
 
             prompt = ChatPromptTemplate.from_template(template)
 
@@ -108,9 +70,79 @@ class hyde(RAG_Model):
                 | StrOutputParser()
             )
             return final_rag_chain.invoke({"context":retrieved_docs,"question":question})
+        return Hyde_response(self.query.question)
 
+@register_model('deep_1')
+class multi_query_fusion(RAG_Model):
+
+    
+    def reciprocal_rank_fusion(self,results: list[list], k=60):
+        """ Reciprocal_rank_fusion that takes multiple lists of ranked documents
+            and an optional parameter k used in the RRF formula """
+
+        # Initialize a dictionary to hold fused scores for each unique document
+        fused_scores = {}
+
+        # Iterate through each list of ranked documents
+        for docs in results:
+            # Iterate through each document in the list, with its rank (position in the list)
+            for rank, doc in enumerate(docs):
+                # Convert the document to a string format to use as a key (assumes documents can be serialized to JSON)
+                doc_str = dumps(doc)
+                # If the document is not yet in the fused_scores dictionary, add it with an initial score of 0
+                if doc_str not in fused_scores:
+                    fused_scores[doc_str] = 0
+                # Retrieve the current score of the document, if any
+                previous_score = fused_scores[doc_str]
+                # Update the score of the document using the RRF formula: 1 / (rank + k)
+                fused_scores[doc_str] += 1 / (rank + k)
+
+        # Sort the documents based on their fused scores in descending order to get the final reranked results
+        reranked_results = [
+            (loads(doc), score)
+            for doc, score in sorted(fused_scores.items(), key=lambda x: x[1], reverse=True)
+        ]
+
+        # Return the reranked results as a list of tuples, each containing the document and its fused score
+        return reranked_results
+    
+    def process(self) -> str:
+        template = TEMPLATES["query_generate"]
+        prompt = ChatPromptTemplate.from_template(template)
+        generate_queries = (
+            {"n":itemgetter("n"),'question':itemgetter("question")}
+            | prompt
+            | LLM_S
+            | StrOutputParser()
+            | (lambda x: x.split('\n'))
+        )
         
-        return Hyde_response(self.query.query)
+        retrieval_chain_rag_fusion = (
+            generate_queries
+            | RETRIEVER.map()
+            | self.reciprocal_rank_fusion
+        )
+        prompt = ChatPromptTemplate.from_template(TEMPLATES['BASIC'])
+        rag_chain_fusion = (
+            {"context": retrieval_chain_rag_fusion,"question":itemgetter("question")}
+            | prompt
+            | LLM
+            | StrOutputParser()
+        )
+        return rag_chain_fusion.invoke({"question":self.query.question,"n":"five"})
 
 
 list_models = list(MODEL_REGISTRY.keys())
+
+async def get_response(query:model_query):
+    """Get the response for the query
+
+    Args:
+        query (model_query): The request received
+
+    Returns:
+        str: The Models response to the question
+    """
+    model = MODEL_REGISTRY.get(query.model,naive)
+    response = model(query).cleaned()
+    return response

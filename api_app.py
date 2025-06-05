@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from app.model_route import models_router
+from app.webapp.model_route import models_router
+from app.telegrambot.endpoint import telegram_bot_router
 # from fastapi import Depends
 # from utils.security import check
 
@@ -11,4 +12,4 @@ def read_root():
 
 
 app.include_router(models_router)
-
+app.include_router(telegram_bot_router)

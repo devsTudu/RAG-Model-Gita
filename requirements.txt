@@ -11,7 +11,7 @@ fastapi[standard]
 sqlalchemy
 google-genai
 
-
+pytest
 unstructured
 markdown
 

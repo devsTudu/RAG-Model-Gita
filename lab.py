@@ -1,13 +1,10 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from src.agents.chat_models import gemini
+from src.agents.responder import multi_query_fusion
+from app.webapp.dataclass import model_query
 
-query = [
-    ("system", "Translate the user sentence to French."),
-    ("human", "I love programming."),
-]
+agent = multi_query_fusion(query=model_query(model='any',
+                                           question='What is the goal of life?'))
 
-data = gemini.invoke(query)
-print(data)
-# print(knowledge[0])
+print(agent.cleaned())
