@@ -131,6 +131,20 @@ class multi_query_fusion(RAG_Model):
         )
         return rag_chain_fusion.invoke({"question":self.query.question,"n":"five"})
 
+@register_model('search')
+class search(RAG_Model):
+    """Model that uses a search engine to get the response
+
+    Args:
+        RAG_Model (_type_): _description_
+    """
+    def process(self) -> str:
+        rag_chain = (
+            RETRIEVER
+            | StrOutputParser()
+        )
+        return rag_chain.invoke(self.query.question)
+
 
 list_models = list(MODEL_REGISTRY.keys())
 

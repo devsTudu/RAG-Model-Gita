@@ -37,7 +37,7 @@ def setwebhook(url: str):
 async def send_response(chat_id: int, text: str):
     """Send a response to a specific chat ID"""
     msg_id = BOT.send_message(chat_id, "thinking")
-    print(msg_id)
+    
     try:
         resp = await get_quick(text)
         data = {
@@ -80,7 +80,7 @@ async def responder(update:TelegramUpdate):
     return handle_activation_code(msg_text, sender, username)
 
 def handle_activation_code(code: str, sender: int,username: str):    
-    if msg_text == ACTIVATION_CODE:
+    if code == ACTIVATION_CODE:
         # If the activation code matches, register the user
         if check_user_exhists(sender):
             return BOT.send_message(sender, "You are already registered, you can ask questions")
