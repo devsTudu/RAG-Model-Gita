@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, HTTPException
 from utils.getsecret import get
 
-from .base import bot,Message
+from pprint import pprint
+from .base import TelegramUpdate, TelegramBot
 from .supabase import check_user_exhists,add_user, add_record
 from src.agents.responder import get_quick
 
-import threading
+
+TOKEN = get("TELEGRAM_BOT_API")
+BOT = TelegramBot(TOKEN)
 
 telegram_bot_router = APIRouter(prefix='/telegram')
 ACTIVATION_CODE = get("TELEGRAM_ACTIVATION_CODE")
@@ -22,7 +25,7 @@ def setwebhook(url: str):
             "url": url,
             "allowed_updates": ["message", "callback_query"]
         }
-        response = bot.send_request('setWebhook',
+        response = BOT.send_request('setWebhook',
                          webhook_data)
     except Exception as e:
         raise HTTPException(
@@ -31,18 +34,25 @@ def setwebhook(url: str):
         )
     return response
 
-def send_response(chat_id: int, text: str):
+async def send_response(chat_id: int, text: str):
     """Send a response to a specific chat ID"""
-    bot.send_message(chat_id, "thinking")
+    msg_id = BOT.send_message(chat_id, "thinking")
+    print(msg_id)
     try:
-        resp = get_quick(text)
-        bot.send_message(chat_id, resp)
+        resp = await get_quick(text)
+        data = {
+            "chat_id": chat_id,
+            "text": resp,
+            "message_id": msg_id,
+            "parse_mode": "Markdown"
+        }
+        BOT.send_request("editMessageText",data)
         add_record(chat_id,text,resp)
     except Exception as e:
         print(f"Failed to send message to {chat_id}: {str(e)}")
 
 @telegram_bot_router.post("/respond")
-async def responder(query:Request):
+async def responder(update:TelegramUpdate):
     """Endpoint to handle incoming Telegram messages
 
     Args:
@@ -53,30 +63,30 @@ async def responder(query:Request):
     Returns:
         None : _description_
     """
-    msg = Message(await query.json())
-    if not msg.text:
-        return bot.send_message(msg.chat_id, "No text provided in the message.")
-    # Checking Activation Code
-    if msg.text != ACTIVATION_CODE and not check_user_exhists(msg.chat_id):
-        # If the activation code does not match and the user does not exist, return an error message
-        return bot.send_message(msg.chat_id, "Invalid activation code.")
-    if msg.text == ACTIVATION_CODE:
-        # If the activation code matches, register the user
-        if check_user_exhists(msg.chat_id):
-            return bot.send_message(msg.chat_id, "You are already registered.")
-        # Register the user in the database
-        add_user(msg.user_username, "123456879", msg.chat_id)
-        return bot.send_message(msg.chat_id, "You have been registered successfully, Start using the bot")
     
-    # If the message contains text, send a response
-    try:
-        
-        th = threading.Thread(
-            target=send_response,
-            args=(msg.chat_id, msg.text),
-            daemon=True
-        )
-        th.start()
-    except Exception as e:
-        return bot.send_message(msg.chat_id, f"Error processing your request: {str(e)}")
+    msg_text = update.message.text if update.message else None
+    sender = update.message.from_user.id
+    username = update.message.from_user.username
+    if msg_text == "/start":
+        # If the message is "/start", send a welcome message
+        return BOT.send_message(sender, "Welcome to the bot! Please provide the activation code to register.")
+    
+    # Respond if registered user sends a message
+    if check_user_exhists(sender) and msg_text != ACTIVATION_CODE:
+        await send_response(sender, msg_text)
+        return BOT.send_message(sender,"Success")
+
+    # Handle activation code
+    return handle_activation_code(msg_text, sender, username)
+
+def handle_activation_code(code: str, sender: int,username: str):    
+    if msg_text == ACTIVATION_CODE:
+        # If the activation code matches, register the user
+        if check_user_exhists(sender):
+            return BOT.send_message(sender, "You are already registered, you can ask questions")
+        # Register the user in the database
+        add_user(username, "123456879", sender)
+        return BOT.send_message(sender, "You have been registered successfully, Start using the bot")
+    
+    return BOT.send_message(sender, "Invalid activation code.")
     

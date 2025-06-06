@@ -147,7 +147,7 @@ async def get_response(query:model_query):
     response = model(query).cleaned()
     return response
 
-def get_quick(query:str):
+async def get_quick(query:str):
     """Get the quick model for the query
 
     Args:
@@ -156,5 +156,5 @@ def get_quick(query:str):
     Returns:
         str: The response from the quick model
     """
-    return naive(model_query(model='quick_1',question=query)).cleaned()
+    return await get_response(model_query(model='quick_1',question=query))
 
