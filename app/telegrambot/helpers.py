@@ -45,7 +45,7 @@ async def send_response(chat_id: int, text: str, BOT: TelegramBot, msg_id: int =
     
     try:
         resp = await get_quick(text)
-        print(f"Response for {chat_id}: {resp}, msg_id: {msg_id}")
+        # print(f"Response for {chat_id}: {resp}, msg_id: {msg_id}")
         update_msg = BOT.updateMessage(chat_id, msg_id, resp)
         if not isinstance(update_msg,int):
             return BOT.send_message(chat_id, "Something went wrong, please try again later.")

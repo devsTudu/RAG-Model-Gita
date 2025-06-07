@@ -166,5 +166,5 @@ async def get_quick(query:str):
     Returns:
         str: The response from the quick model
     """
-    return await get_response(model_query(model='search',question=query))
+    return await get_response(model_query(model='quick_2',question=query))
 
