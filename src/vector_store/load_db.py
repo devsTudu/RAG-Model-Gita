@@ -1,7 +1,3 @@
-from langchain_postgres import PGVector
-from langchain_core.documents import Document
-from typing import Any, List
-
 from src.agents.embedders import myEmbedder
 from utils.getsecret import get
 from .base import PGVectorDataLoader, RobustPGVectorRetriever

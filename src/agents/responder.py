@@ -6,6 +6,7 @@ from langchain.load import dumps, loads
 from operator import itemgetter
 
 from app.webapp.dataclass import model_query
+from .search import search_for
 from src.agents.base import RAG_Model, TEMPLATES, RETRIEVER, LLM, LLM_S
 
 MODEL_REGISTRY: dict[str, type[RAG_Model]] = {}
@@ -139,12 +140,7 @@ class search(RAG_Model):
         RAG_Model (_type_): _description_
     """
     def process(self) -> str:
-        rag_chain = (
-            RETRIEVER
-            | StrOutputParser()
-        )
-        return rag_chain.invoke(self.query.question)
-
+        return search_for(self.query.question, n=7)
 
 list_models = list(MODEL_REGISTRY.keys())
 
