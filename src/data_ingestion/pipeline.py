@@ -30,4 +30,23 @@ def get_docs():
                                 ))
         
     return docs_doc
-  
+
+
+def split_docs(docs: list[Document]) -> list[Document]:
+    """
+    Splits the content of each document into multiple documents based on the "\n\n" delimiter.
+
+    Args:
+        docs: A list of Document objects.
+
+    Returns:
+        A list of new Document objects after splitting.
+    """
+    split_docs_list = []
+    for doc in docs:
+        content = doc.page_content
+        parts = content.split("\n\n")
+        for part in parts:
+            if part.strip():  # Avoid creating empty documents
+                split_docs_list.append(Document(page_content=part, metadata=doc.metadata))
+    return split_docs_list

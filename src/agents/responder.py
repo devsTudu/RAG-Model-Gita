@@ -131,6 +131,20 @@ class multi_query_fusion(RAG_Model):
         )
         return rag_chain_fusion.invoke({"question":self.query.question,"n":"five"})
 
+@register_model('search')
+class search(RAG_Model):
+    """Model that uses a search engine to get the response
+
+    Args:
+        RAG_Model (_type_): _description_
+    """
+    def process(self) -> str:
+        rag_chain = (
+            RETRIEVER
+            | StrOutputParser()
+        )
+        return rag_chain.invoke(self.query.question)
+
 
 list_models = list(MODEL_REGISTRY.keys())
 
@@ -146,3 +160,15 @@ async def get_response(query:model_query):
     model = MODEL_REGISTRY.get(query.model,naive)
     response = model(query).cleaned()
     return response
+
+async def get_quick(query:str):
+    """Get the quick model for the query
+
+    Args:
+        query (str): The query to be processed
+
+    Returns:
+        str: The response from the quick model
+    """
+    return await get_response(model_query(model='quick_2',question=query))
+

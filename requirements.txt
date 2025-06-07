@@ -27,10 +27,13 @@ aiofiles
 langchain_postgres
 pgvector
 psycopg2
+psycopg2-binary
 langchain-astradb
 
 ## App
 python-jose[cryptography]
+supabase
+
 
 ## Streamlit
 streamlit>=1.42.0
