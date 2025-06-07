@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from app.webapp.dataclass import model_query
 
-from src.vector_store.load_db import Neon_DB,Supabase_DB
+from src.vector_store.load_db import Neon_DB,Supabase_DB, Robust
 from src.agents.chat_models import gemini,gemini_strict
 
 
 LLM = gemini
 LLM_S = gemini_strict
-RETRIEVER = Supabase_DB.get_retriever()
+RETRIEVER = Robust
 
 TEMPLATES:dict[str,str] = {
     "BASIC":"""You are a wise and empathetic guide helping a user understand the teachings of the Bhagavad Gita.
