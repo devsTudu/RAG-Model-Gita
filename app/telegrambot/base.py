@@ -93,6 +93,20 @@ class TelegramBot:
             logger.error("Error sending message: %s", e)
             return "Failed Request to TG API"
 
+    def updateMessage(self, chat_id, msg_id, text):
+        data = {
+            'chat_id': chat_id,
+            'message_id': msg_id,
+            'text': text,
+            "parse_mode": "Markdown"
+        }
+        resp = self.send_request('editMessageText', data)
+        if resp.get("ok"):
+            return resp.get("result", {}).get("message_id")
+        else:
+            logger.error("Failed to update message: %s", resp.get("description", "Unknown error"))
+            return None
+
     def send_message(self, chat_id, text):
         data = {'chat_id': chat_id, 'text': text, "parse_mode": "Markdown"}
         resp = self.send_request('sendMessage', data)
@@ -108,7 +122,13 @@ class TelegramBot:
             'text': text,
             'reply_to_message_id': msg_id
         }
-        return self.send_request('sendMessage', data)
+        resp = self.send_request('sendMessage', data)
+        if resp.get("ok"):
+            return resp.get("result", {}).get("message_id")
+        else:
+            logger.error("Failed to send message: %s", resp.get("description", "Unknown error"))
+            return None
+
 
     def send_photo(self, file_loc, caption, chat_id):
         with open(file_loc, "rb") as image_file:
