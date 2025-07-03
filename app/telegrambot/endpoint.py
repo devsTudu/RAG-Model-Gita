@@ -7,7 +7,7 @@ from .supabase import check_user_exhists,add_user, add_record
 from src.agents.responder import get_quick
 
 
-TOKEN = get("TELEGRAM_BOT_API")
+TOKEN = get("TELEGRAM_BOT_API") 
 BOT = TelegramBot(TOKEN)
 
 telegram_bot_router = APIRouter(prefix='/telegram')

@@ -48,5 +48,6 @@ class RAG_Model(ABC):
     
     def cleaned(self)-> str:
         response = self.process()
-        response.replace("provided text","Bhagavad Gita")
+        if isinstance(response,str):
+            response.replace("provided text","Bhagavad Gita")
         return response

@@ -10,22 +10,25 @@ from src.agents.base import RAG_Model, TEMPLATES, RETRIEVER, LLM, LLM_S
 
 MODEL_REGISTRY: dict[str, type[RAG_Model]] = {}
 
+
 def register_model(name: str):
     def wrapper(cls: type[RAG_Model]):
         MODEL_REGISTRY[name] = cls
         return cls
+
     return wrapper
 
 
-@register_model(name='quick_1')
+@register_model(name="quick_1")
 class naive(RAG_Model):
     """The most general and simple RAG Model
 
     Args:
         RAG_Model (_type_): _description_
     """
+
     def process(self) -> str:
-        template = TEMPLATES['BASIC']
+        template = TEMPLATES["BASIC"]
         prompt = ChatPromptTemplate.from_template(template)
         rag_chain = (
             {"context": RETRIEVER, "question": RunnablePassthrough()}
@@ -36,13 +39,15 @@ class naive(RAG_Model):
 
         return rag_chain.invoke(self.query.question)
 
-@register_model('quick_2')
+
+@register_model("quick_2")
 class hyde(RAG_Model):
     """Model with Hypothetical Document Embedding techniques
 
     Args:
         RAG_Model (_type_): _description_
     """
+
     def process(self) -> str:
         template = """Please write a scientific logical explanation paper passage to answer the question,
         focus more on the understanding and influence of the answer to the audience than the fact,
@@ -50,35 +55,32 @@ class hyde(RAG_Model):
         Passage:"""
         prompt_hyde = ChatPromptTemplate.from_template(template)
 
-        generate_docs_for_retrieval = (
-            prompt_hyde | LLM_S | StrOutputParser()
-        )
+        generate_docs_for_retrieval = prompt_hyde | LLM_S | StrOutputParser()
 
         def Hyde_response(question):
             # question = "What is task decomposition for LLM agents?"
-            generate_docs_for_retrieval.invoke({"question":question})
+            generate_docs_for_retrieval.invoke({"question": question})
             retrieval_chain = generate_docs_for_retrieval | RETRIEVER
-            retrieved_docs = retrieval_chain.invoke({"question":question})
+            retrieved_docs = retrieval_chain.invoke({"question": question})
             # RAG
             template = TEMPLATES["BASIC"]
 
             prompt = ChatPromptTemplate.from_template(template)
 
-            final_rag_chain = (
-                prompt
-                | LLM
-                | StrOutputParser()
+            final_rag_chain = prompt | LLM | StrOutputParser()
+            return final_rag_chain.invoke(
+                {"context": retrieved_docs, "question": question}
             )
-            return final_rag_chain.invoke({"context":retrieved_docs,"question":question})
+
         return Hyde_response(self.query.question)
 
-@register_model('deep_1')
+
+@register_model("deep_1")
 class multi_query_fusion(RAG_Model):
 
-    
-    def reciprocal_rank_fusion(self,results: list[list], k=60):
-        """ Reciprocal_rank_fusion that takes multiple lists of ranked documents
-            and an optional parameter k used in the RRF formula """
+    def reciprocal_rank_fusion(self, results: list[list], k=60):
+        """Reciprocal_rank_fusion that takes multiple lists of ranked documents
+        and an optional parameter k used in the RRF formula"""
 
         # Initialize a dictionary to hold fused scores for each unique document
         fused_scores = {}
@@ -100,55 +102,58 @@ class multi_query_fusion(RAG_Model):
         # Sort the documents based on their fused scores in descending order to get the final reranked results
         reranked_results = [
             (loads(doc), score)
-            for doc, score in sorted(fused_scores.items(), key=lambda x: x[1], reverse=True)
+            for doc, score in sorted(
+                fused_scores.items(), key=lambda x: x[1], reverse=True
+            )
         ]
 
         # Return the reranked results as a list of tuples, each containing the document and its fused score
         return reranked_results
-    
+
     def process(self) -> str:
         template = TEMPLATES["query_generate"]
         prompt = ChatPromptTemplate.from_template(template)
         generate_queries = (
-            {"n":itemgetter("n"),'question':itemgetter("question")}
+            {"n": itemgetter("n"), "question": itemgetter("question")}
             | prompt
             | LLM_S
             | StrOutputParser()
-            | (lambda x: x.split('\n'))
+            | (lambda x: x.split("\n"))
+        )
+
+        retrieval_chain_rag_fusion = (
+            generate_queries | RETRIEVER.map() | self.reciprocal_rank_fusion
         )
         
-        retrieval_chain_rag_fusion = (
-            generate_queries
-            | RETRIEVER.map()
-            | self.reciprocal_rank_fusion
-        )
-        prompt = ChatPromptTemplate.from_template(TEMPLATES['BASIC'])
+        prompt = ChatPromptTemplate.from_template(TEMPLATES["BASIC"])
         rag_chain_fusion = (
-            {"context": retrieval_chain_rag_fusion,"question":itemgetter("question")}
+            {"context": retrieval_chain_rag_fusion, "question": itemgetter("question")}
             | prompt
             | LLM
             | StrOutputParser()
         )
-        return rag_chain_fusion.invoke({"question":self.query.question,"n":"five"})
+        return rag_chain_fusion.invoke({"question": self.query.question, "n": "five"})
 
-@register_model('search')
+
+@register_model("search")
 class search(RAG_Model):
     """Model that uses a search engine to get the response
 
     Args:
         RAG_Model (_type_): _description_
     """
+
     def process(self) -> str:
-        rag_chain = (
-            RETRIEVER
-            | StrOutputParser()
-        )
-        return rag_chain.invoke(self.query.question)
+        rag_chain = RETRIEVER | StrOutputParser()
+        
+        resp = rag_chain.invoke(self.query.question)
+        return "\n".join([r.__str__() for r in resp])
 
 
 list_models = list(MODEL_REGISTRY.keys())
 
-async def get_response(query:model_query):
+
+async def get_response(query: model_query):
     """Get the response for the query
 
     Args:
@@ -157,11 +162,12 @@ async def get_response(query:model_query):
     Returns:
         str: The Models response to the question
     """
-    model = MODEL_REGISTRY.get(query.model,naive)
+    model = MODEL_REGISTRY.get(query.model, naive)
     response = model(query).cleaned()
     return response
 
-async def get_quick(query:str):
+
+async def get_quick(query: str):
     """Get the quick model for the query
 
     Args:
@@ -170,5 +176,4 @@ async def get_quick(query:str):
     Returns:
         str: The response from the quick model
     """
-    return await get_response(model_query(model='quick_2',question=query))
-
+    return await get_response(model_query(model="quick_2", question=query))
