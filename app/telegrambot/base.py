@@ -23,8 +23,10 @@ class User(BaseModel):
     is_bot: bool
     first_name: str
     last_name: Optional[str] = None
-    username: Optional[str] = None
-    language_code: Optional[str] = None  # IETF language tag of the user's system
+    username: Optional[str] = ""
+
+    # IETF language tag of the user's system
+    language_code: Optional[str] = None
     can_join_groups: Optional[bool] = None
     can_read_all_group_messages: Optional[bool] = None
     supports_inline_queries: Optional[bool] = None
@@ -37,13 +39,13 @@ class Chat(BaseModel):
     """
 
     id: int
-    type: str  # Type of chat, can be “private”, “group”, “supergroup” or “channel”
-    title: Optional[str] = None  # Title, for supergroups, channels and group chats
-    username: Optional[str] = (
-        None  # Username, for private chats, supergroups and channels if available
-    )
-    first_name: Optional[str] = None  # First name of the other party in a private chat
-    last_name: Optional[str] = None  # Last name of the other party in a private chat
+    # Type of chat, can be “private”, “group”, “supergroup” or “channel”
+    type: str
+    # Title, for supergroups, channels and group chats
+    title: Optional[str] = None
+    username: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
 
 class Message(BaseModel):
@@ -53,19 +55,13 @@ class Message(BaseModel):
     """
 
     message_id: int
-    from_user: Optional[User] = Field(
-        None, alias="from"
-    )  # Sender of the message; can be empty for messages sent to channels
+    from_user: User
+    # Sender of the message; can be empty for messages sent to channels
     chat: Chat  # Conversation the message belongs to
     date: int  # Date the message was sent in Unix time
     text: Optional[str] = (
         None  # For text messages, the actual UTF-8 text of the message
     )
-    # Add other common message fields as needed:
-    # photo: Optional[list] = None # Array of PhotoSize, available sizes of the photo
-    # video: Optional[Video] = None # Video file
-    # sticker: Optional[Sticker] = None # Sticker
-    # etc.
 
 
 class TelegramUpdate(BaseModel):
@@ -75,19 +71,11 @@ class TelegramUpdate(BaseModel):
     https://core.telegram.org/bots/api#update
     """
 
-    update_id: int  # The update’s unique identifier. Update identifiers start from a certain positive number and increase sequentially. This ID becomes larger over time, but might not be sequential if certain updates were skipped.
-    message: Optional[Message] = (
-        None  # New incoming message of any kind — text, photo, sticker, etc.
-    )
-    edited_message: Optional[Message] = (
-        None  # New version of a message that is known to the bot and was edited
-    )
-    channel_post: Optional[Message] = (
-        None  # New incoming channel post of any kind — text, photo, sticker, etc.
-    )
-    edited_channel_post: Optional[Message] = (
-        None  # New version of a channel post that is known to the bot and was edited
-    )
+    update_id: int
+    message: Optional[Message] = None
+    edited_message: Optional[Message] = None
+    channel_post: Optional[Message] = None
+    edited_channel_post: Optional[Message] = None
     # Add other update types as needed for your bot's functionality:
     # inline_query: Optional[InlineQuery] = None
     # chosen_inline_result: Optional[ChosenInlineResult] = None
@@ -109,7 +97,7 @@ class TelegramBot:
     def send_request(self, method, data):
         url = self.base_url + method
         try:
-            response = requests.post(url, json=data)
+            response = requests.post(url, json=data, timeout=1000)
             response.raise_for_status()  # Raise an error for bad status codes
             logger.log(0, "Message sent successfully: %s", response)
             return response.json()
@@ -125,35 +113,45 @@ class TelegramBot:
             "parse_mode": "Markdown",
         }
         resp = self.send_request("editMessageText", data)
-        if resp.get("ok"):
-            return resp.get("result", {}).get("message_id")
-        else:
+        if isinstance(resp, dict):
+            if resp.get("ok"):
+                return resp.get("result", {}).get("message_id")
             logger.error(
-                "Failed to update message: %s", resp.get("description", "Unknown error")
+                "Failed to update message: %s",
+                resp.get("description", "Unknown error")
             )
-            return None
+        return None
 
     def send_message(self, chat_id, text):
-        data = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
+        data = {
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "Markdown",
+        }
         resp = self.send_request("sendMessage", data)
-        if resp.get("ok"):
-            return resp.get("result", {}).get("message_id")
-        else:
+        if isinstance(resp, dict):
+            if resp.get("ok"):
+                return resp.get("result", {}).get("message_id")
             logger.error(
-                "Failed to send message: %s", resp.get("description", "Unknown error")
+                "Failed to send message: %s",
+                resp.get("description", "Unknown error"),
             )
-            return None
+
+        return None
 
     def reply_message(self, chat_id, msg_id, text):
-        data = {"chat_id": chat_id, "text": text, "reply_to_message_id": msg_id}
+        data: dict = {"chat_id": chat_id,
+                      "text": text,
+                      "reply_to_message_id": msg_id}
         resp = self.send_request("sendMessage", data)
-        if resp.get("ok"):
-            return resp.get("result", {}).get("message_id")
-        else:
+        if isinstance(resp, dict):
+            if resp.get("ok"):
+                return resp.get("result", {}).get("message_id")
+
             logger.error(
-                "Failed to send message: %s", resp.get("description", "Unknown error")
+                "Failed to send message: %s",
+                resp.get("description", "Unknown error")
             )
-            return None
 
     def send_photo(self, file_loc, caption, chat_id):
         with open(file_loc, "rb") as image_file:
@@ -164,7 +162,9 @@ class TelegramBot:
                 "caption": (None, caption),
             }
 
-            return requests.post(self.base_url + "sendPhoto", files=files)
+            return requests.post(url=self.base_url + "sendPhoto",
+                                 files=files,
+                                 timeout=50000)
 
 
 BOT = TelegramBot(TOKEN)

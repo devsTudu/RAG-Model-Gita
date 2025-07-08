@@ -15,10 +15,12 @@ def setwebhook(url: str):
         url (str): The URL where Telegram will send updates
     """
     try:
-        webhook_data = {"url": url,
-                         "allowed_updates": ["message",
-                                              "callback_query"
-                                            ]}
+        webhook_data = {
+            "url": url,
+            "allowed_updates": ["message",
+                                "callback_query"
+                                ]
+            }
         response = BOT.send_request("setWebhook", webhook_data)
     except Exception as e:
         raise HTTPException(status_code=400,
@@ -31,7 +33,7 @@ async def responder(update: TelegramUpdate):
     """Endpoint to handle incoming Telegram messages
 
     Args:
-        query (Request): The Request object containing 
+        query (Request): The Request object containing
         the incoming message data
     Raises:
         HTTPException: If the message does not contain text or
