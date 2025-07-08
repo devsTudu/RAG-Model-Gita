@@ -28,6 +28,3 @@ Ultimately, the Gita suggests that by understanding our true nature and engaging
 
 
 BOT.send_message(7964021486, "Hello")
-
-
-
