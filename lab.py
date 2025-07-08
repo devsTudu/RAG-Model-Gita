@@ -1,7 +1,4 @@
-# from dotenv import load_dotenv
-# load_dotenv()
 from app.telegrambot.base import BOT
-# print(search_for(query))
 
 resp = """Chapter 4:1 verse 1 [link](https://vedabase.io/en/library/bg/4/1) 
  **The Personality of Godhead, Lord Sri Krishna, said: I instructed this imperishable science of yoga to the sun-god, Vivasvan, and Vivasvan instructed it to Manu, the father of mankind, and Manu in turn instructed it to Ikshvaku.** 
@@ -31,14 +28,3 @@ Ultimately, the Gita suggests that by understanding our true nature and engaging
 
 
 BOT.send_message(7964021486, "Hello")
-
-# from src.agents.responder import multi_query_fusion
-# from app.webapp.dataclass import model_query
-# from src.agents.search import search_for
-
-
-# query = "What is the goal of life?"
-# agent = multi_query_fusion(query=model_query(model='deep_1',
-#                                            question=query))
-
-# print(agent.cleaned())

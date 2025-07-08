@@ -4,11 +4,11 @@ import uvicorn
 
 from app.webapp.model_route import models_router
 from app.telegrambot.endpoint import telegram_bot_router
-# from fastapi import Depends
-# from utils.security import check
+
 load_dotenv()
 
 app = FastAPI()
+
 
 @app.get("/")
 def read_root():
@@ -18,6 +18,6 @@ def read_root():
 app.include_router(models_router)
 app.include_router(telegram_bot_router)
 
+
 def run_app():
     uvicorn.run(app)
-    

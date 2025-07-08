@@ -15,16 +15,12 @@ def setwebhook(url: str):
         url (str): The URL where Telegram will send updates
     """
     try:
-        webhook_data = {
-            "url": url,
-            "allowed_updates": ["message",
-                                "callback_query"
-                                ]
-            }
+        webhook_data = {"url": url, "allowed_updates": [
+            "message", "callback_query"]}
         response = BOT.send_request("setWebhook", webhook_data)
     except Exception as e:
-        raise HTTPException(status_code=400,
-                            detail=f"Failed to set webhook: {str(e)}")
+        raise HTTPException(
+            status_code=400, detail=f"Failed to set webhook: {str(e)}")
     return response
 
 
@@ -43,6 +39,3 @@ async def responder(update: TelegramUpdate):
         None : _description_
     """
     return await update_handler(update, BOT)
-
-
-# chatid = 7964021486
