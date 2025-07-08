@@ -64,8 +64,10 @@ class RobustPGVectorRetriever(BaseRetriever):
     vectorstore: Any  # This will be your PGVector instance
     k: int = 4
     search_type: str = "similarity"  # "similarity", "mmr", "similarity_score_threshold"
-    score_threshold: Optional[float] = None  # Only for "similarity_score_threshold"
-    fetch_k: Optional[int] = None  # For MMR, number of initial documents to fetch
+    # Only for "similarity_score_threshold"
+    score_threshold: Optional[float] = None
+    # For MMR, number of initial documents to fetch
+    fetch_k: Optional[int] = None
     lambda_mult: Optional[float] = None  # For MMR, diversity score
 
     # Retry configuration
@@ -95,22 +97,20 @@ class RobustPGVectorRetriever(BaseRetriever):
             self.fetch_k is None or self.lambda_mult is None
         ):
             logger.warning(
-                "For 'mmr' search_type, 'fetch_k' and 'lambda_mult'" \
+                "For 'mmr' search_type, 'fetch_k' and 'lambda_mult'"
                 " are recommended for optimal performance."
             )
 
     @retry(
         wait=wait_exponential(
-                multiplier=1,
-                min=initial_backoff,
-                max=max_backoff),
+            multiplier=1, min=initial_backoff, max=max_backoff),
         stop=stop_after_attempt(max_retries),
         reraise=True,  # Re-raise the last exception if all retries fail
         before_sleep=lambda retry_state: logger.warning(
             "Retrying PGVector search... Attempt %d after %.2fs of inactivity. Last exception: %s.",
             retry_state.attempt_number,
             retry_state.idle_for,
-            retry_state.outcome
+            retry_state.outcome,
         ),
     )
     def _perform_pgvector_search(self, query: str) -> List[Document]:
@@ -139,7 +139,8 @@ class RobustPGVectorRetriever(BaseRetriever):
                     if score >= self.score_threshold
                 ]
             else:
-                raise ValueError(f"Unsupported search_type: {self.search_type}")
+                raise ValueError(
+                    f"Unsupported search_type: {self.search_type}")
             return docs
         except Exception as e:
             logger.error(f"PGVector search failed with error: {e}")
