@@ -21,8 +21,6 @@ pycountry
 wikipedia
 
 ## Vector DBs
-# chromadb 
-# lancedb some problem in my pc
 aiofiles
 langchain_postgres
 pgvector

@@ -1,5 +1,12 @@
 from pathlib import Path
 import os
+import json
+
+
+def load_json_as_dict(filepath):
+    with open(filepath, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data
 
 
 def get_project_root() -> Path:
@@ -14,7 +21,7 @@ def read_file(file_path):
     :return: String content of the file
     """
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             content = file.read()
         return content
     except FileNotFoundError:
@@ -23,7 +30,7 @@ def read_file(file_path):
         return f"Error reading file: {e}"
 
 
-def list_of_files(path: str | Path, extension: str, exclude:list[str]) -> list[str]:
+def list_of_files(path: str | Path, extension: str, exclude: list[str]) -> list[str]:
     """
     Search for all files in path and return a list of all files in path with the extension appended.
 
@@ -33,7 +40,7 @@ def list_of_files(path: str | Path, extension: str, exclude:list[str]) -> list[s
     """
 
     files = []
-    for root,_ , files_in_dir in os.walk(path):
+    for root, _, files_in_dir in os.walk(path):
         for file in files_in_dir:
             if file.endswith(extension):
                 for ex in exclude:
@@ -42,4 +49,3 @@ def list_of_files(path: str | Path, extension: str, exclude:list[str]) -> list[s
                 else:
                     files.append(os.path.join(root, file))
     return files
-                

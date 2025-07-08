@@ -1,14 +1,16 @@
 from src.agents.embedders import myEmbedder
-from utils.getsecret import get
+from utils.environmentVariablesHandler import get
 from .base import PGVectorDataLoader, RobustPGVectorRetriever
 
-NEON_PGVECTOR :str = get("DATABASE_URL")
-SUPABASE_PGVECTOR :str = get("SUPABASE_DB_URL")
+PRIMARY_PGVECTOR: str = get("VECTOR_DATABASE_URL")
+SECONDARY_PGVECTOR: str = get("BACKUP_VECTOR_DATABASE_URL")
 
-Neon_DB = PGVectorDataLoader(myEmbedder,NEON_PGVECTOR,"gita")
-Supabase_DB = PGVectorDataLoader(myEmbedder,SUPABASE_PGVECTOR,"gita")
+PRIMARY_DB = PGVectorDataLoader(myEmbedder, SECONDARY_PGVECTOR, "gita")
+SECONDARY_DB = PGVectorDataLoader(myEmbedder, PRIMARY_PGVECTOR, "gita")
 
 
-Robust = RobustPGVectorRetriever(vectorstore=Supabase_DB.vector_db,
-                                 fallback_retriever=Neon_DB.get_retriever(),
-                                 enable_fallback=True)
+Robust = RobustPGVectorRetriever(
+    vectorstore=PRIMARY_DB.vector_db,
+    fallback_retriever=SECONDARY_DB.get_retriever(),
+    enable_fallback=True,
+)

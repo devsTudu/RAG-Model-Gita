@@ -4,11 +4,11 @@ from src.agents.responder import list_models, get_response
 from app.webapp.dataclass import model_query
 
 
-
 models_router = APIRouter(prefix="/models")
 
+
 @models_router.post("/response/")
-async def get_response_from_model(request:model_query):
+async def get_response_from_model(request: model_query):
     """Return the response from the correct model
 
     Args:
@@ -19,6 +19,7 @@ async def get_response_from_model(request:model_query):
     """
     response = await get_response(request)
     return response
+
 
 @models_router.get("/models_list")
 def getList():

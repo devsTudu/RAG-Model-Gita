@@ -1,13 +1,11 @@
 from fastapi import APIRouter, HTTPException
-from utils.getsecret import get
 
-from .base import TelegramUpdate, TelegramBot
+from .base import TelegramUpdate, BOT
 from .helpers import update_handler
 
-TOKEN = get("TELEGRAM_BOT_API") 
-BOT = TelegramBot(TOKEN)
 
-telegram_bot_router = APIRouter(prefix='/telegram')
+telegram_bot_router = APIRouter(prefix="/telegram")
+
 
 @telegram_bot_router.get("/setwebook")
 def setwebhook(url: str):
@@ -17,31 +15,32 @@ def setwebhook(url: str):
         url (str): The URL where Telegram will send updates
     """
     try:
-        webhook_data = {
-            "url": url,
-            "allowed_updates": ["message", "callback_query"]
-        }
-        response = BOT.send_request('setWebhook',
-                         webhook_data)
+        webhook_data = {"url": url,
+                         "allowed_updates": ["message",
+                                              "callback_query"
+                                            ]}
+        response = BOT.send_request("setWebhook", webhook_data)
     except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Failed to set webhook: {str(e)}"
-        )
+        raise HTTPException(status_code=400,
+                            detail=f"Failed to set webhook: {str(e)}")
     return response
 
+
 @telegram_bot_router.post("/respond")
-async def responder(update:TelegramUpdate):
+async def responder(update: TelegramUpdate):
     """Endpoint to handle incoming Telegram messages
 
     Args:
-        query (Request): The Request object containing the incoming message data
+        query (Request): The Request object containing 
+        the incoming message data
     Raises:
-        HTTPException: If the message does not contain text or if there is an error processing the message
+        HTTPException: If the message does not contain text or
+            if there is an error processing the message
 
     Returns:
         None : _description_
     """
     return await update_handler(update, BOT)
 
-#chatid = 7964021486
+
+# chatid = 7964021486

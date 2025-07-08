@@ -6,7 +6,6 @@ from langchain.load import dumps, loads
 from operator import itemgetter
 
 from app.webapp.dataclass import model_query
-from .search import search_for
 from src.agents.base import RAG_Model, TEMPLATES, RETRIEVER, LLM, LLM_S
 
 MODEL_REGISTRY: dict[str, type[RAG_Model]] = {}

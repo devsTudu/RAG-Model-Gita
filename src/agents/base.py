@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from app.webapp.dataclass import model_query
 
-from src.vector_store.load_db import Neon_DB,Supabase_DB, Robust
+from src.vector_store.load_db import SECONDARY_DB,PRIMARY_DB, Robust
 from src.agents.chat_models import gemini,gemini_strict
 
 
