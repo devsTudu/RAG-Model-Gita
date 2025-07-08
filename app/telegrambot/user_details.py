@@ -41,7 +41,8 @@ def init_db():
 def ensure_tables_exist():
     inspector = inspect(engine)
     tables = inspector.get_table_names()
-    required_tables = {TelegramUser.__tablename__, TelegramMessage.__tablename__}
+    required_tables = {TelegramUser.__tablename__,
+                       TelegramMessage.__tablename__}
     if not required_tables.issubset(set(tables)):
         logger.info("Required tables missing. Initializing database...")
         init_db()
@@ -72,7 +73,8 @@ def add_record(chat_id, query: str, response: str):
     session = SessionLocal()
     chat_id = str(chat_id)
     try:
-        message = TelegramMessage(chat_id=chat_id, query=query, response=response)
+        message = TelegramMessage(
+            chat_id=chat_id, query=query, response=response)
         session.add(message)
         session.commit()
         return True

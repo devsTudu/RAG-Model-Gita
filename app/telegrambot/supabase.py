@@ -40,9 +40,8 @@ def add_record(chat_id, query, response):
 def check_user_exhists(chat_id):
     """Returns true if the user already exhists"""
     response = (
-        supabase.table("telegram_user").select("*").
-        eq("chat_id", chat_id).
-        execute()
+        supabase.table("telegram_user").select(
+            "*").eq("chat_id", chat_id).execute()
     )
     return len(response.data) == 1
 
