@@ -35,7 +35,6 @@ def test_functions():
     Conduct a test to run all the functions
     """
     pytest.main()
-    
 
 
 if __name__ == "__main__":
