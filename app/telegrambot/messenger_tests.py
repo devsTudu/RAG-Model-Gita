@@ -27,8 +27,10 @@ def test_user_details():
 
 def test_bot_initialization():
     assert BOT is not None, "Bot initialization failed"
-    assert hasattr(BOT, "send_message"), "Bot does not have send_message method"
-    assert hasattr(BOT, "send_request"), "Bot does not have send_request method"
+    assert hasattr(
+        BOT, "send_message"), "Bot does not have send_message method"
+    assert hasattr(
+        BOT, "send_request"), "Bot does not have send_request method"
 
     assert (
         BOT.send_message(890642031, "Test message") is not None

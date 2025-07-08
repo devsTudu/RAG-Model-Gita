@@ -52,7 +52,8 @@ def checkValue(key: str, instruction: str = "This will be used in the project"):
         if new_val == "":
             new_val = value
     except KeyError:
-        new_val = inquirer.password(f"{key} is not set," "please enter a value")
+        new_val = inquirer.password(
+            f"{key} is not set," "please enter a value")
     if len(new_val) < 8:
         print("Invalid Input. The Value should be atleast 8 character long")
         checkValue(key, instruction)

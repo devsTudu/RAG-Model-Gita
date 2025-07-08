@@ -45,7 +45,8 @@ def getDocs():
         metadata: dict = {
             key: value for key, value in documnt.items() if key != "Purport"
         }
-        metadata["Chapter"], metadata["Verse"] = metadata["Reference"].split(":")
+        metadata["Chapter"], metadata["Verse"] = metadata["Reference"].split(
+            ":")
         docs_doc.append(Document(page_content=content, metadata=metadata))
 
     return docs_doc

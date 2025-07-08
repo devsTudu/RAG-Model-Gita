@@ -124,10 +124,11 @@ class multi_query_fusion(RAG_Model):
         retrieval_chain_rag_fusion = (
             generate_queries | RETRIEVER.map() | self.reciprocal_rank_fusion
         )
-        
+
         prompt = ChatPromptTemplate.from_template(TEMPLATES["BASIC"])
         rag_chain_fusion = (
-            {"context": retrieval_chain_rag_fusion, "question": itemgetter("question")}
+            {"context": retrieval_chain_rag_fusion,
+                "question": itemgetter("question")}
             | prompt
             | LLM
             | StrOutputParser()
@@ -145,7 +146,7 @@ class search(RAG_Model):
 
     def process(self) -> str:
         rag_chain = RETRIEVER | StrOutputParser()
-        
+
         resp = rag_chain.invoke(self.query.question)
         return "\n".join([r.__str__() for r in resp])
 

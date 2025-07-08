@@ -17,8 +17,8 @@ def test_model_registry_not_empty():
     assert len(MODEL_REGISTRY) > 0
 
 
-sample_query = model_query(question="What is the purpose of life?",
-                           model="any")
+sample_query = model_query(
+    question="What is the purpose of life?", model="any")
 
 
 @pytest.mark.parametrize("model_name", MODEL_REGISTRY.keys())

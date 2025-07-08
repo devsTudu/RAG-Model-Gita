@@ -25,7 +25,8 @@ def process_md(path: str) -> tuple[str, str] | None:
                 translation = re.findall(
                     "### Translation:(.*?)### Purport:", content, re.DOTALL
                 )[0].strip()
-                purport = re.findall("### Purport:(.*)", content, re.DOTALL)[0].strip()
+                purport = re.findall("### Purport:(.*)",
+                                     content, re.DOTALL)[0].strip()
             else:
                 translation = re.findall("### Translation:", content, re.DOTALL)[
                     0
