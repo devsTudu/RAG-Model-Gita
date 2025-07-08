@@ -143,7 +143,7 @@ class RobustPGVectorRetriever(BaseRetriever):
         self, query: str, *, run_manager: CallbackManagerForRetrieverRun
     ) -> List[Document]:
         """
-        Get relevant documents from the PGVector database, 
+        Get relevant documents from the PGVector database,
         with robustness measures.
         """
         logger.info(f"Retrieving documents for query: '{query}'")
