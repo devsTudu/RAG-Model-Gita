@@ -92,7 +92,6 @@ class TelegramUpdate(BaseModel):
 class TelegramBot:
     def __init__(self, token):
         self.base_url = f"https://api.telegram.org/bot{token}/"
-        # self.send_message('890642031',"Bot Started")
 
     def send_request(self, method, data):
         url = self.base_url + method
@@ -117,8 +116,8 @@ class TelegramBot:
             if resp.get("ok"):
                 return resp.get("result", {}).get("message_id")
             logger.error(
-                "Failed to update message: %s",
-                resp.get("description", "Unknown error")
+                "Failed to update message: %s", resp.get(
+                    "description", "Unknown error")
             )
         return None
 
@@ -140,8 +139,7 @@ class TelegramBot:
         return None
 
     def reply_message(self, chat_id, msg_id, text):
-        data: dict = {"chat_id": chat_id,
-                      "text": text,
+        data: dict = {"chat_id": chat_id, "text": text,
                       "reply_to_message_id": msg_id}
         resp = self.send_request("sendMessage", data)
         if isinstance(resp, dict):
@@ -149,8 +147,8 @@ class TelegramBot:
                 return resp.get("result", {}).get("message_id")
 
             logger.error(
-                "Failed to send message: %s",
-                resp.get("description", "Unknown error")
+                "Failed to send message: %s", resp.get(
+                    "description", "Unknown error")
             )
 
     def send_photo(self, file_loc, caption, chat_id):
@@ -162,9 +160,9 @@ class TelegramBot:
                 "caption": (None, caption),
             }
 
-            return requests.post(url=self.base_url + "sendPhoto",
-                                 files=files,
-                                 timeout=50000)
+            return requests.post(
+                url=self.base_url + "sendPhoto", files=files, timeout=50000
+            )
 
 
 BOT = TelegramBot(TOKEN)

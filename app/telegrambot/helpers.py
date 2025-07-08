@@ -9,11 +9,11 @@ ACTIVATION_CODE = get("TELEGRAM_ACTIVATION_CODE")
 
 async def update_handler(update: TelegramUpdate, BOT: TelegramBot):
     """Handle incoming Telegram updates and messages."""
-    
+
     message = update.message
     if message is None:
         return "Invalid request"
-    
+
     msg_text = str(message.text)
     sender = message.from_user.id
     username = str(message.from_user.username)
@@ -26,20 +26,13 @@ async def update_handler(update: TelegramUpdate, BOT: TelegramBot):
 
     # Respond if registered user sends a message
     if check_user_exists(sender) and msg_text != ACTIVATION_CODE:
-        await send_response(sender,
-                            msg_text,
-                            BOT,
-                            msg_id=message.message_id)
+        await send_response(sender, msg_text, BOT, msg_id=message.message_id)
         return BOT.send_message(
             sender, "Completed your request, you can ask more questions"
         )
 
     # Handle activation code
-    return BOT.send_message(sender,
-                            handle_activation_code(
-                                msg_text,
-                                sender,
-                                username))
+    return BOT.send_message(sender, handle_activation_code(msg_text, sender, username))
 
 
 def handle_activation_code(code: str, sender: int, username: str):
@@ -57,20 +50,13 @@ def handle_activation_code(code: str, sender: int, username: str):
 async def send_response(chat_id: int, text: str, BOT: TelegramBot, msg_id: int):
     """Send a response to a specific chat ID"""
     try:
-        msg_id = BOT.reply_message(chat_id,
-                                   msg_id,
-                                   "thinking") # type: ignore
+        msg_id = BOT.reply_message(chat_id, msg_id, "thinking")  # type: ignore
     except Exception:
-        msg_id = BOT.send_message(chat_id,
-                                  "thinking")
+        msg_id = BOT.send_message(chat_id, "thinking")
 
     try:
         resp = await get_quick(text)
-        # print(f"Response for {chat_id}: {resp}, msg_id: {msg_id}")
-        update_msg = BOT.updateMessage(
-            chat_id,
-            msg_id,
-            resp)
+        update_msg = BOT.updateMessage(chat_id, msg_id, resp)
         if not isinstance(update_msg, int):
             return BOT.send_message(
                 chat_id, "Something went wrong, please try again later."

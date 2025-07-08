@@ -58,7 +58,6 @@ class hyde(RAG_Model):
         generate_docs_for_retrieval = prompt_hyde | LLM_S | StrOutputParser()
 
         def Hyde_response(question):
-            # question = "What is task decomposition for LLM agents?"
             generate_docs_for_retrieval.invoke({"question": question})
             retrieval_chain = generate_docs_for_retrieval | RETRIEVER
             retrieved_docs = retrieval_chain.invoke({"question": question})
@@ -124,10 +123,11 @@ class multi_query_fusion(RAG_Model):
         retrieval_chain_rag_fusion = (
             generate_queries | RETRIEVER.map() | self.reciprocal_rank_fusion
         )
-        
+
         prompt = ChatPromptTemplate.from_template(TEMPLATES["BASIC"])
         rag_chain_fusion = (
-            {"context": retrieval_chain_rag_fusion, "question": itemgetter("question")}
+            {"context": retrieval_chain_rag_fusion,
+                "question": itemgetter("question")}
             | prompt
             | LLM
             | StrOutputParser()
@@ -145,7 +145,7 @@ class search(RAG_Model):
 
     def process(self) -> str:
         rag_chain = RETRIEVER | StrOutputParser()
-        
+
         resp = rag_chain.invoke(self.query.question)
         return "\n".join([r.__str__() for r in resp])
 
