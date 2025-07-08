@@ -58,7 +58,6 @@ class hyde(RAG_Model):
         generate_docs_for_retrieval = prompt_hyde | LLM_S | StrOutputParser()
 
         def Hyde_response(question):
-            # question = "What is task decomposition for LLM agents?"
             generate_docs_for_retrieval.invoke({"question": question})
             retrieval_chain = generate_docs_for_retrieval | RETRIEVER
             retrieved_docs = retrieval_chain.invoke({"question": question})

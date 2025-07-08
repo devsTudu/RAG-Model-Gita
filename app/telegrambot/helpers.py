@@ -66,7 +66,6 @@ async def send_response(chat_id: int, text: str, BOT: TelegramBot, msg_id: int):
 
     try:
         resp = await get_quick(text)
-        # print(f"Response for {chat_id}: {resp}, msg_id: {msg_id}")
         update_msg = BOT.updateMessage(
             chat_id,
             msg_id,

@@ -92,7 +92,6 @@ class TelegramUpdate(BaseModel):
 class TelegramBot:
     def __init__(self, token):
         self.base_url = f"https://api.telegram.org/bot{token}/"
-        # self.send_message('890642031',"Bot Started")
 
     def send_request(self, method, data):
         url = self.base_url + method

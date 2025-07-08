@@ -12,7 +12,6 @@ def convert_to_string(doc:Document):
   return resp
 
 def search_for(query:str,n=4):
-    # Robust.k = n
     result =Robust.invoke(query,fetch_k = n)
     if not result:
         return "No results found"

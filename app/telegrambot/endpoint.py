@@ -45,4 +45,3 @@ async def responder(update: TelegramUpdate):
     return await update_handler(update, BOT)
 
 
-# chatid = 7964021486
