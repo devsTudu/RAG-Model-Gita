@@ -4,7 +4,6 @@ from typing import List, Any, Optional
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
-from langchain_core.documents import Document
 from langchain_postgres import PGVector
 
 from tenacity import retry, wait_exponential, stop_after_attempt, Retrying
@@ -96,17 +95,22 @@ class RobustPGVectorRetriever(BaseRetriever):
             self.fetch_k is None or self.lambda_mult is None
         ):
             logger.warning(
-                "For 'mmr' search_type, 'fetch_k' and 'lambda_mult' are recommended for optimal performance."
+                "For 'mmr' search_type, 'fetch_k' and 'lambda_mult'" \
+                " are recommended for optimal performance."
             )
 
     @retry(
-        wait=wait_exponential(multiplier=1, min=initial_backoff, max=max_backoff),
+        wait=wait_exponential(
+                multiplier=1,
+                min=initial_backoff,
+                max=max_backoff),
         stop=stop_after_attempt(max_retries),
         reraise=True,  # Re-raise the last exception if all retries fail
         before_sleep=lambda retry_state: logger.warning(
-            f"Retrying PGVector search... Attempt {retry_state.attempt_number}/{self.max_retries} "
-            f"after {retry_state.idle_for:.2f}s of inactivity. "
-            f"Last exception: {retry_state.outcome}."
+            "Retrying PGVector search... Attempt %d after %.2fs of inactivity. Last exception: %s.",
+            retry_state.attempt_number,
+            retry_state.idle_for,
+            retry_state.outcome
         ),
     )
     def _perform_pgvector_search(self, query: str) -> List[Document]:
@@ -114,7 +118,9 @@ class RobustPGVectorRetriever(BaseRetriever):
         Internal method to perform the actual PGVector search with retries.
         """
         logger.info(
-            f"Attempting PGVector search with type: {self.search_type} for query: '{query}'"
+            "Attempting PGVector search with type: %s for query: '%s'",
+            self.search_type,
+            query,
         )
         try:
             if self.search_type == "similarity":
