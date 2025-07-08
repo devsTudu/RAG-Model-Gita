@@ -79,7 +79,8 @@ class Downloader:
 
         self.repo_url = url
 
-    def __mkdirs(self, path):
+    @staticmethod
+    def __mkdirs(path):
 
         # Make directory if not exist
 
